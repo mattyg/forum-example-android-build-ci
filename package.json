@@ -6,8 +6,8 @@
     "tests"
   ],
   "scripts": {
-    "start": "AGENTS=${AGENTS:-2} BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) npm run network",
-    "network": "hc sandbox clean && npm run build:happ && UI_PORT=$(port) concurrently \"npm start -w ui\" \"npm run launch:happ\" \"holochain-playground\"",
+    "start": "AGENTS=2 npm run network",
+    "network": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm run -w ui start\" \"npm run launch\"",
     "test": "npm run build:zomes && hc app pack workdir --recursive && npm t -w tests",
     "launch:happ": "hc-spin -n $AGENTS --ui-port $UI_PORT workdir/forum.happ",
     "start:tauri": "AGENTS=${AGENTS:-2} BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) npm run network:tauri",
@@ -15,14 +15,22 @@
     "launch:tauri": "concurrently \"hc run-local-services --bootstrap-port $BOOTSTRAP_PORT --signal-port $SIGNAL_PORT\" \"echo pass | RUST_LOG=warn hc launch --piped -n $AGENTS workdir/forum.happ --ui-port $UI_PORT network --bootstrap http://127.0.0.1:\"$BOOTSTRAP_PORT\" webrtc ws://127.0.0.1:\"$SIGNAL_PORT\"\"",
     "package": "npm run build:happ && npm run package -w ui && hc web-app pack workdir --recursive",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
-    "build:zomes": "RUSTFLAGS='' CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown"
+    "build:zomes": "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum",
+    "local-services": "hc run-local-services --bootstrap-interface $INTERNAL_IP --bootstrap-port $BOOTSTRAP_PORT --signal-interfaces $INTERNAL_IP --signal-port $SIGNAL_PORT",
+    "network:android": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"UI_PORT=1420 npm run -w ui start\" \"npm run tauri dev\" \"npm run tauri android dev\"",
+    "start:android": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm run -w ui start\" \"npm run tauri android dev\"",
+    "launch": "concurrently-repeat \"npm run tauri dev --no-watch\" $AGENTS",
+    "tauri": "tauri"
   },
   "devDependencies": {
     "@holochain-playground/cli": "^0.300.0-rc.0",
     "@holochain/hc-spin": "0.300.2-dev.6",
-    "concurrently": "^6.2.1",
-    "rimraf": "^3.0.2",
-    "new-port-cli": "^1.0.0"
+    "@tauri-apps/cli": "^2.0.0-beta.20",
+    "concurrently": "^8.2.2",
+    "concurrently-repeat": "^0.0.1",
+    "internal-ip-cli": "^2.0.0",
+    "new-port-cli": "^1.0.0",
+    "rimraf": "^3.0.2"
   },
   "engines": {
     "npm": ">=7.0.0"

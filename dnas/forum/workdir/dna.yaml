@@ -2,7 +2,7 @@
 manifest_version: "1"
 name: forum
 integrity:
-  network_seed: ~
+  network_seed: 2024-06-25-mattyg-testing
   properties: ~
   origin_time: 1718232813330802
   zomes:

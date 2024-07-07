@@ -7,6 +7,7 @@
   import CreatePost from './forum/posts/CreatePost.svelte';
 
   import { clientContext } from './contexts';
+    import NetworkInfo from './forum/posts/NetworkInfo.svelte';
 
   let client: AppClient | undefined;
   let loading = true;
@@ -36,6 +37,7 @@
         <h2>All Posts</h2>
         <AllPosts style="margin-bottom: 16px" />
         <CreatePost />
+        <NetworkInfo />
       </div>
     </main>
   {/if}
