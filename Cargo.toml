@@ -11,6 +11,8 @@ resolver = "2"
 [workspace.dependencies]
 hdi = { path = "../Holochain/holochain/crates/hdi" }
 hdk = { path = "../Holochain/holochain/crates/hdk" }
+# hdi = "0.4.1"
+# hdk = "0.3.1"
 serde = "1.0"
 
 [workspace.dependencies.posts]

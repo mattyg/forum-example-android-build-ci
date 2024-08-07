@@ -1,7 +1,7 @@
 {
-  "productName": "forum",
+  "productName": "forum3",
   "version": "0.0.1",
-  "identifier": "org.example.forum",
+  "identifier": "org.example.forum3",
   "build": {
     "beforeBuildCommand": "npm run build -w ui && npm run build:happ",
     "devUrl": "http://localhost:1420",

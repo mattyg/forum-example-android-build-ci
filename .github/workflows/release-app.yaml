@@ -1,0 +1,58 @@
+name: "release-app"
+on:
+  push: 
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release-app:
+    strategy:
+      fail-fast: true
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v25
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.20.0/install
+          extra_nix_config: |
+            experimental-features = flakes nix-command
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: forum
+          extraPullNames: holochain-ci,holochain-open-dev,darksoil-studio
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          nix develop .#androidDev
+          npm i
+          
+      - name: Build happ & webhapp
+        run: |
+          nix develop .#androidDev
+          npm run package
+
+      - name: Build Android app
+        run: |
+          nix develop .#androidDev
+          npm run build:android
+      
+      - name: Get current tag
+        id: get-current-tag
+        uses: zingimmick/github-action-get-current-tag@v1
+
+      - name: Publish Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "${{steps.get-current-tag.outputs.tag}}"
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+            workdir/*.happ
+            workdir/*.webhapp
