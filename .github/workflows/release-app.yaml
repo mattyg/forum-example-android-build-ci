@@ -33,7 +33,7 @@ jobs:
           
       - name: Build happ & webhapp
         run: |
-          nix develop .#androidDev
+          nix develop
           npm run package
 
       - name: Build Android app
