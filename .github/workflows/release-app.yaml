@@ -32,15 +32,10 @@ jobs:
           npm i
           
       - name: Build happ & webhapp
-        run: |
-          nix develop
-          rustup target add wasm32-unknown-unknown
-          npm run package
+        run: nix develop --command bash -c "npm run package"
 
       - name: Build Android app
-        run: |
-          nix develop .#androidDev
-          npm run build:android
+        run: nix develop .#androidDev --command bash -c "npm run build:android
       
       - name: Get current tag
         id: get-current-tag
