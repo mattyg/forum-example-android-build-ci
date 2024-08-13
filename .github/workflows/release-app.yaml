@@ -13,6 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free up disk space in action runner
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get clean
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Install nix
         uses: cachix/install-nix-action@v25
         with:
