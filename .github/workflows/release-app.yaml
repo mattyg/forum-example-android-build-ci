@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     steps:
       - uses: actions/checkout@v4
 
