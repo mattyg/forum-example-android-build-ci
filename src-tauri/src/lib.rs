@@ -155,3 +155,4 @@ fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
         }
     }
 }
+
