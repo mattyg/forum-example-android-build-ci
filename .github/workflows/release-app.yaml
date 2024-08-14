@@ -9,16 +9,12 @@ jobs:
     strategy:
       fail-fast: true
 
-    runs-on: ubuntu-latest-large
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free up disk space in action runner
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          sudo apt-get clean
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
 
       - name: Install nix
         uses: cachix/install-nix-action@v25
