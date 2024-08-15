@@ -52,6 +52,7 @@ jobs:
           prerelease: true
           title: "${{steps.get-current-tag.outputs.tag}}"
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
             workdir/*.happ
             workdir/*.webhapp
