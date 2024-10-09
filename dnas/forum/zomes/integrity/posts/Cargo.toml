@@ -11,3 +11,5 @@ name = "posts_integrity"
 hdi = { workspace = true }
 
 serde = { workspace = true }
+
+validate_trait = { path = "../../../../../crates/validate_trait" }

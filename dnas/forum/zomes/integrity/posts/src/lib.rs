@@ -41,36 +41,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         FlatOp::StoreEntry(store_entry) => {
             match store_entry {
                 OpEntry::CreateEntry { app_entry, action } => {
-                    match app_entry {
-                        EntryTypes::Post(post) => {
-                            validate_create_post(
-                                EntryCreationAction::Create(action),
-                                post,
-                            )
-                        }
-                        EntryTypes::Comment(comment) => {
-                            validate_create_comment(
-                                EntryCreationAction::Create(action),
-                                comment,
-                            )
-                        }
-                    }
+                    app_entry.0.validate_create(EntryCreationAction::Create(action), app_entry.0)
                 }
                 OpEntry::UpdateEntry { app_entry, action, .. } => {
-                    match app_entry {
-                        EntryTypes::Post(post) => {
-                            validate_create_post(
-                                EntryCreationAction::Update(action),
-                                post,
-                            )
-                        }
-                        EntryTypes::Comment(comment) => {
-                            validate_create_comment(
-                                EntryCreationAction::Update(action),
-                                comment,
-                            )
-                        }
-                    }
+                    app_entry.0.validate_create(EntryCreationAction::Create(action), app_entry.0)
                 }
                 _ => Ok(ValidateCallbackResult::Valid),
             }
@@ -78,6 +52,8 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         FlatOp::RegisterUpdate(update_entry) => {
             match update_entry {
                 OpUpdate::Entry { app_entry, action } => {
+
+                    // TODO: Should the subconcoius do this?
                     let original_action = must_get_action(
                             action.clone().original_action_address,
                         )?
@@ -97,54 +73,20 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             );
                         }
                     };
-                    match app_entry {
-                        EntryTypes::Comment(comment) => {
-                            let original_app_entry = must_get_valid_record(
-                                action.clone().original_action_address,
-                            )?;
-                            let original_comment = match Comment::try_from(
-                                original_app_entry,
-                            ) {
-                                Ok(entry) => entry,
-                                Err(e) => {
-                                    return Ok(
-                                        ValidateCallbackResult::Invalid(
-                                            format!("Expected to get Comment from Record: {e:?}"),
-                                        ),
-                                    );
-                                }
-                            };
-                            validate_update_comment(
-                                action,
-                                comment,
-                                original_create_action,
-                                original_comment,
-                            )
-                        }
-                        EntryTypes::Post(post) => {
-                            let original_app_entry = must_get_valid_record(
-                                action.clone().original_action_address,
-                            )?;
-                            let original_post = match Post::try_from(
-                                original_app_entry,
-                            ) {
-                                Ok(entry) => entry,
-                                Err(e) => {
-                                    return Ok(
-                                        ValidateCallbackResult::Invalid(
-                                            format!("Expected to get Post from Record: {e:?}"),
-                                        ),
-                                    );
-                                }
-                            };
-                            validate_update_post(
-                                action,
-                                post,
-                                original_create_action,
-                                original_post,
-                            )
-                        }
-                    }
+
+                    // TODO: Should the subconcoius do this?
+                    validate_record_exists_and_contains_proper_entry_type(action.clone().original_action_address);
+
+                    let original_app_entry = must_get_valid_record(
+                        action.clone().original_action_address
+                    )?;
+
+                    app_entry.0.validate_update(
+                        action,
+                        app_entry.0,
+                        original_create_action,
+                        original_app_entry,
+                    )
                 }
                 _ => Ok(ValidateCallbackResult::Valid),
             }
@@ -199,22 +141,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     );
                 }
             };
-            match original_app_entry {
-                EntryTypes::Comment(original_comment) => {
-                    validate_delete_comment(
-                        delete_entry.clone().action,
-                        original_action,
-                        original_comment,
-                    )
-                }
-                EntryTypes::Post(original_post) => {
-                    validate_delete_post(
-                        delete_entry.clone().action,
-                        original_action,
-                        original_post,
-                    )
-                }
-            }
+
+            original_app_entry.0.validate_delete(
+                delete_entry.clone().action,
+                original_action,
+                original_app_entry.0,
+            )
         }
         FlatOp::RegisterCreateLink {
             link_type,

@@ -1,4 +1,5 @@
 use hdi::prelude::*;
+use validate_trait::ValidateEntry;
 
 #[derive(Clone, PartialEq)]
 #[hdk_entry_helper]
@@ -7,38 +8,28 @@ pub struct Comment {
     pub post_hash: ActionHash,
 }
 
-pub fn validate_create_comment(
-    _action: EntryCreationAction,
-    comment: Comment,
-) -> ExternResult<ValidateCallbackResult> {
-    let record = must_get_valid_record(comment.post_hash.clone())?;
-    let _post: crate::Post = record
-        .entry()
-        .to_app_option()
-        .map_err(|e| wasm_error!(e))?
-        .ok_or(
-            wasm_error!(
-                WasmErrorInner::Guest(String::from("Dependant action must be accompanied by an entry"))
-            ),
-        )?;
-    Ok(ValidateCallbackResult::Valid)
-}
+impl ValidateEntry for Comment { 
+    fn validate_create(action: EntryCreatoinAction, entry: Self) -> ExternResult<ValidateCallbackResult> {
+        let record = must_get_valid_record(entry.post_hash.clone())?;
+        let _post: crate::Post = record
+            .entry()
+            .to_app_option()
+            .map_err(|e| wasm_error!(e))?
+            .ok_or(
+                wasm_error!(
+                    WasmErrorInner::Guest(String::from("Dependant action must be accompanied by an entry"))
+                ),
+            )?;
+        Ok(ValidateCallbackResult::Valid)
+    }
 
-pub fn validate_update_comment(
-    _action: Update,
-    _comment: Comment,
-    _original_action: EntryCreationAction,
-    _original_comment: Comment,
-) -> ExternResult<ValidateCallbackResult> {
-    Ok(ValidateCallbackResult::Invalid("Comments cannot be updated".to_string()))
-}
-
-pub fn validate_delete_comment(
-    _action: Delete,
-    _original_action: EntryCreationAction,
-    _original_comment: Comment,
-) -> ExternResult<ValidateCallbackResult> {
-    Ok(ValidateCallbackResult::Valid)
+    fn validate_update(
+        action: Update,
+        entry: Self,
+        original_action: EntryCreationAction
+    ) -> ExternResult<ValidateCallbackResult> {
+        Ok(ValidateCallbackResult::Invalid("Comments cannot be updated".to_string()))
+    }
 }
 
 pub fn validate_create_link_post_to_comments(

@@ -2,7 +2,7 @@ use holochain_types::prelude::AppBundle;
 use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainPluginConfig, HolochainExt};
+use tauri_plugin_holochain::{HolochainManagerConfig, HolochainExt};
 use url2::Url2;
 use tauri::AppHandle;
 
@@ -15,6 +15,18 @@ pub fn happ_bundle() -> AppBundle {
     AppBundle::decode(bytes).expect("Failed to decode forum happ")
 }
 
+fn wan_network_config() -> Option<WANNetworkConfig> {
+    // Resolved at compile time to be able to point to local services
+    if tauri::is_dev() {
+        None
+    } else {
+        Some(WANNetworkConfig {
+            signal_url: url2::url2!("{}", SIGNAL_URL),
+            bootstrap_url: url2::url2!("{}", BOOTSTRAP_URL)
+        })
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -25,9 +37,8 @@ pub fn run() {
         )
         .plugin(tauri_plugin_holochain::init(
             vec_to_locked(vec![]).expect("Can't build passphrase"),
-            HolochainPluginConfig {
-                signal_url: signal_url(),
-                bootstrap_url: bootstrap_url(),
+            HolochainManagerConfig {
+                wan_network_config: wan_network_config()
                 holochain_dir: holochain_dir(),
             },
         ))
